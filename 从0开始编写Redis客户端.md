@@ -34,19 +34,148 @@ Protocol.java 协议
 TestJiBaoJedis.java  测试
 
 ##### Connection.java
-![xxxx](http://jibao-supplier.oss-cn-shanghai.aliyuncs.com/advideofile/190327204139_5391778816_7aa28811-7c3d-45b6-a45e-a49a15e80241.png 比)
+```
+/**
+ * Created by zorro on 2019/3/27.
+ */
+@Data
+public class Connection {
+    public String host;
+    public int port;
+    private Socket socket;
+    private InputStream inputStream;
+    private OutputStream outputStream;
+    public Connection connection(String host,int port) {
+        try {
+            socket = new Socket(host,port);
+            inputStream = socket.getInputStream();
+            outputStream = socket.getOutputStream();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return  this;
+    }
 
-![CSDN图标](http://jibao-supplier.oss-cn-shanghai.aliyuncs.com/advideofile/190327204139_5391778816_7aa28811-7c3d-45b6-a45e-a49a15e80241.png "这是CSDN的图标")
+}
+
+```
 
 ##### Constant.java
+```
+/**
+ * Created by zorro on 2019/3/27.
+ */
+public class Constant {
+    public static final String  DOLLAR_SYMBOL="$";
+    public static final String  STAR_SYMBOL="*";
+    public static final String  ENTER__SYMBOL="\r\n";
+    public static final String  SET_COMMAND = "SET";
+    public static final String  GET_COMMAND = "GET";
+}
+
+
+```
 
 ##### JiBaoJedisClient.java
+```
+/**
+ * Created by zorro on 2019/3/27.
+ */
+public class JiBaoJedisClient {
+    private Connection conn ;
+    private Protocol protocol;
+    public JiBaoJedisClient(String host,int port) {
+        conn = new Connection();
+        conn.connection(host,port);
+    }
+    public String get(String key) {
+        try {
+            protocol = new Protocol();
+            StringBuffer sb = protocol.getCommand(key);
+            conn.getOutputStream().write(sb.toString().getBytes());
+            byte[] bytes = new byte[1024];
+            conn.getInputStream().read(bytes);
+            return new String(bytes);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+    public String set(String key,String val) {
+        try {
+            protocol = new Protocol();
+            StringBuffer sb = protocol.setCommand(key,val);
+            conn.getOutputStream().write(sb.toString().getBytes());
+            byte[] bytes = new byte[1024];
+            conn.getInputStream().read(bytes);
+            return new String(bytes);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+}
+
+```
 
 ##### Protocol.java
+```
+
+/**
+ * Created by zorro on 2019/3/27.
+ */
+public class Protocol {
+
+    public StringBuffer setCommand(String key,String val) {
+        StringBuffer sb = new StringBuffer();
+        sb.append(Constant.STAR_SYMBOL).append("3").append(Constant.ENTER__SYMBOL);
+
+        sb.append(Constant.DOLLAR_SYMBOL).append("3").append(Constant.ENTER__SYMBOL);
+        sb.append(Constant.SET_COMMAND).append(Constant.ENTER__SYMBOL);
+
+        sb.append(Constant.DOLLAR_SYMBOL).append(key.getBytes().length).append(Constant.ENTER__SYMBOL);
+        sb.append(key).append(Constant.ENTER__SYMBOL);
+
+        sb.append(Constant.DOLLAR_SYMBOL).append(val.getBytes().length).append(Constant.ENTER__SYMBOL);
+        sb.append(val).append(Constant.ENTER__SYMBOL);
+        return sb;
+
+    }
+    public StringBuffer getCommand(String key) {
+        StringBuffer sb = new StringBuffer();
+        sb.append(Constant.STAR_SYMBOL).append("2").append(Constant.ENTER__SYMBOL);
+
+        sb.append(Constant.DOLLAR_SYMBOL).append("3").append(Constant.ENTER__SYMBOL);
+        sb.append(Constant.GET_COMMAND).append(Constant.ENTER__SYMBOL);
+
+        sb.append(Constant.DOLLAR_SYMBOL).append(key.getBytes().length).append(Constant.ENTER__SYMBOL);
+        sb.append(key).append(Constant.ENTER__SYMBOL);
+        return sb;
+
+    }
+
+}
+
+```
 
 ##### TestJiBaoJedis.java
 
+```
 
+/**
+ * Created by zorro on 2019/3/27.
+ */
+public class TestJiBaoJedis {
+    public static void main(String args[]) {
+        JiBaoJedisClient client = new JiBaoJedisClient("127.0.0.1",6379);
+        System.out.println(client.set("name","佐罗"));
+        System.out.println(client.get("name"));
+    }
+}
 
+```
 
+### 写在后面的话
+到这里一个简易的redis客户端实现了，只要你理解其原理你可以用其他语言去实现它，c c++ php go py等，做上层应用开发小伙伴可能畏惧TCP，别怕！<br/>
+只要够用心，你可以一步一个脚印，从应用层干到物理层。不瞎逼逼了，就这样吧 
 
