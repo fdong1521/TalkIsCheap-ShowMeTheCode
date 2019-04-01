@@ -1,2 +1,1 @@
-
-![image](https://github.com/AngelSXD/sxd_first_repository/blob/master/images/20160615165142.png)
+# 从0开始编写web服务器(C语言版)
